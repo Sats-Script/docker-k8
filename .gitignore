@@ -1,0 +1,25 @@
+# .NET build outputs
+bin/
+obj/
+
+# Node.js dependencies
+node_modules/
+
+# Environment files
+.env
+*.env.*
+
+# Logs
+*.log
+
+# Docker build artifacts
+*.dockerignore
+Dockerfile.*
+
+# IDE and editor files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
