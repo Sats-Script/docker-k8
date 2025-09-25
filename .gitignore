@@ -1,25 +1,36 @@
+cd /path/to/k8
+cat <<EOL > .gitignore
 # .NET build outputs
 bin/
 obj/
-
-# Node.js dependencies
+# Node.js/React dependencies and build outputs
 node_modules/
-
+dist/
+build/
+.vite/
+# PostgreSQL data
+database/data/
+*/data/
 # Environment files
 .env
 *.env.*
-
+.env.local
+.env.development
+.env.production
 # Logs
 *.log
-
+logs/
 # Docker build artifacts
 *.dockerignore
 Dockerfile.*
-
 # IDE and editor files
 .vscode/
 .idea/
-
+*.sln
+*.csproj.user
 # OS-specific files
 .DS_Store
 Thumbs.db
+# Vite cache
+.vite/cache/
+EOL

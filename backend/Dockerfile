@@ -12,8 +12,12 @@ WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-# PG env are passed from compose/k8s
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD curl --fail http://localhost:8080/health || exit 1
 ENTRYPOINT ["dotnet", "DevOpsSample.Api.dll"]
+
+# Build: docker build -t my-backend-image .
+# Run: docker run -d -p 8080:8080 my-backend-image
 # The application will be accessible on port 80.
 # Ensure to configure your application settings and environment variables as needed for your deployment environment.
 # Consider using environment variables or a secrets management tool to handle sensitive information securely.
