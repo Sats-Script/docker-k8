@@ -12,11 +12,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Configuration
-var pgHost = Environment.GetEnvironmentVariable("PGHOST") ?? "db";
+var pgHost = Environment.GetEnvironmentVariable("PGHOST") ?? "postgres";
 var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
-var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "appuser";
-var pgPwd  = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "apppass";
-var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE") ?? "appdb";
+var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "devuser";
+var pgPwd  = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "secret123";
+var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE") ?? "devdb";
 var connString = $"Host={pgHost};Port={pgPort};Username={pgUser};Password={pgPwd};Database={pgDb}";
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
