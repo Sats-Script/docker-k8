@@ -5,7 +5,13 @@ RUN if [ -f package-lock.json ]; then npm ci; \
     elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i; \
     elif [ -f yarn.lock ]; then yarn; \
     else npm i; fi
+
 COPY . .
+
+# debug / fail early if index.html is not where vite expects it
+RUN ls -la /app && ls -la /app/* || true
+RUN [ -f index.html ] || (echo "index.html not found in /app — check .dockerignore or vite.config root" && false)
+
 RUN npm run build
 
 FROM nginx:1.27-alpine
@@ -14,6 +20,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost || exit 1
+
 
 # Build: docker build -t my-frontend-image .
 # Run: docker run -d -p 8081:80 my-frontend-image
