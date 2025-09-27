@@ -8,7 +8,7 @@ export default function App() {
   const [price, setPrice] = useState('')
 
   const load = async () => {
-    const res = await fetch(`${API}/api/products`)
+    const res = await fetch(`${API}/products`)
     const data = await res.json()
     setItems(data)
   }
