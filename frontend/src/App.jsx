@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-const API = (import.meta.env.VITE_API_BASE || 'api')
+const API = (import.meta.env.VITE_API_BASE || '/api')
 
 export default function App() {
   const [items, setItems] = useState([])
@@ -15,7 +15,7 @@ export default function App() {
 
   const add = async (e) => {
     e.preventDefault()
-    await fetch(`${API}/api/products`, {
+    await fetch(`${API}/products`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, price: parseFloat(price), inStock: true })
