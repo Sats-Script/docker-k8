@@ -1,6 +1,6 @@
 #!/bin/bash
-# setup-k8.sh
-# Purpose: Install Docker, kubectl, Minikube, and mount extra EBS for PV simulation
+# setup-k8s.sh
+# Purpose: Install Docker, kubectl, Minikube, mount EBS, and start Minikube on RHEL 9
 
 set -e
 
@@ -11,20 +11,22 @@ echo "Updating system packages..."
 yum update -y
 
 # -------------------------------
-# 2️⃣ Install Docker
+# 2️⃣ Install Docker CE
 # -------------------------------
-echo "Installing Docker..."
-yum install -y yum-utils device-mapper-persistent-data lvm2
-yum install -y docker
+echo "Installing Docker CE..."
+yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
+yum install -y yum-utils
+yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 systemctl enable --now docker
-echo "Docker installed and started."
+echo "Docker installed and running."
 
 # -------------------------------
 # 3️⃣ Add ec2-user to Docker group
 # -------------------------------
 if id "ec2-user" &>/dev/null; then
     usermod -aG docker ec2-user
-    echo "Added ec2-user to Docker group."
+    echo "Added ec2-user to Docker group. Logout and login again for group change."
 fi
 
 # -------------------------------
@@ -36,6 +38,7 @@ curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
 chmod +x kubectl
 mv kubectl /usr/local/bin/
 echo "kubectl installed."
+kubectl version --client || true
 
 # -------------------------------
 # 5️⃣ Install Minikube
