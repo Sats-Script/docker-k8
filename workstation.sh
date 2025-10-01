@@ -1,66 +1,89 @@
 #!/bin/bash
+# setup-k8.sh
+# Purpose: Install Docker, kubectl, Minikube, and mount extra EBS for PV simulation
 
-USERID=$(id -u)
-TIMESTAMP=$(date +%F-%H-%M-%S)
-SCRIPT_NAME=$(echo $0 | cut -d "." -f1)
-LOGFILE=/tmp/$SCRIPT_NAME-$TIMESTAMP.log
-R="\e[31m"
-G="\e[32m"
-Y="\e[33m"
-N="\e[0m"
+set -e
 
-ARCH=amd64
-PLATFORM=$(uname -s)_$ARCH
+# -------------------------------
+# 1️⃣ Update system
+# -------------------------------
+echo "Updating system packages..."
+yum update -y
 
-VALIDATE(){
-   if [ $1 -ne 0 ]
-   then
-        echo -e "$2...$R FAILURE $N"
-        exit 1
-    else
-        echo -e "$2...$G SUCCESS $N"
-    fi
-}
+# -------------------------------
+# 2️⃣ Install Docker
+# -------------------------------
+echo "Installing Docker..."
+yum install -y yum-utils device-mapper-persistent-data lvm2
+yum install -y docker
+systemctl enable --now docker
+echo "Docker installed and started."
 
-if [ $USERID -ne 0 ]
-then
-    echo "Please run this script with root access."
-    exit 1 # manually exit if error comes.
-else
-    echo "You are super user."
+# -------------------------------
+# 3️⃣ Add ec2-user to Docker group
+# -------------------------------
+if id "ec2-user" &>/dev/null; then
+    usermod -aG docker ec2-user
+    echo "Added ec2-user to Docker group."
 fi
 
-# # docker
-# yum install -y yum-utils
-# yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-# yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-# systemctl start docker
-# systemctl enable docker
-# usermod -aG docker ec2-user
-# VALIDATE $? "Docker installation"
+# -------------------------------
+# 4️⃣ Install kubectl
+# -------------------------------
+echo "Installing kubectl..."
+KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+chmod +x kubectl
+mv kubectl /usr/local/bin/
+echo "kubectl installed."
 
-# eksctl
-curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
-tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
-mv /tmp/eksctl /usr/local/bin
-eksctl version
-VALIDATE $? "eksctl installation"
+# -------------------------------
+# 5️⃣ Install Minikube
+# -------------------------------
+echo "Installing Minikube..."
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+chmod +x minikube-linux-amd64
+mv minikube-linux-amd64 /usr/local/bin/minikube
+echo "Minikube installed."
 
+# -------------------------------
+# 6️⃣ Mount extra EBS volume for PV
+# -------------------------------
+EBS_DEVICE="/dev/nvme1n1"
+MOUNT_POINT="/mnt/ebs"
 
-# kubectl
-curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.31.0/2024-09-12/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-mv kubectl /usr/local/bin/kubectl
-VALIDATE $? "kubectl installation"
+echo "Setting up extra EBS volume..."
+mkdir -p $MOUNT_POINT
 
-# kubens
-git clone https://github.com/ahmetb/kubectx /opt/kubectx
-ln -s /opt/kubectx/kubens /usr/local/bin/kubens
-VALIDATE $? "kubens installation"
+# Check if already formatted
+if ! blkid $EBS_DEVICE &>/dev/null; then
+    echo "Formatting $EBS_DEVICE with ext4..."
+    mkfs.ext4 $EBS_DEVICE
+fi
 
+# Mount and set permissions
+mount $EBS_DEVICE $MOUNT_POINT
+chmod 777 $MOUNT_POINT
 
-# Helm
-# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-# chmod 700 get_helm.sh
-# ./get_helm.sh
-# VALIDATE $? "helm installation"
+# Add to /etc/fstab to mount on reboot
+if ! grep -q "$MOUNT_POINT" /etc/fstab; then
+    echo "$EBS_DEVICE $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
+fi
+echo "EBS volume mounted at $MOUNT_POINT"
+
+# -------------------------------
+# 7️⃣ Start Minikube
+# -------------------------------
+echo "Starting Minikube..."
+minikube delete || true
+minikube start --cpus=2 --memory=4096 --driver=docker
+
+# -------------------------------
+# 8️⃣ Done
+# -------------------------------
+echo "===================================="
+echo "✅ Setup complete!"
+echo "Docker, kubectl, Minikube installed."
+echo "Minikube is running, PV available at $MOUNT_POINT"
+echo "Use 'kubectl get nodes' to verify cluster."
+echo "===================================="
