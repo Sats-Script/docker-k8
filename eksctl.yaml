@@ -7,6 +7,6 @@ metadata:
 
 managedNodeGroups:
  - name: todo-nodes
-   instancetype: m5.large
-   desiredcapacity: 2
+   instanceType: t3.small
+   desiredCapacity: 2
    spot: true  # must not used for Deployment environment
