@@ -12,12 +12,30 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Configuration
-var pgHost = Environment.GetEnvironmentVariable("PGHOST") ?? "postgres";
-var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
-var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "devuser";
-var pgPwd  = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "secret123";
-var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE") ?? "devdb";
+// var pgHost = Environment.GetEnvironmentVariable("PGHOST") ?? "postgres";
+// var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
+// var pgUser = Environment.GetEnvironmentVariable("PGUSER") ?? "devuser";
+// var pgPwd  = Environment.GetEnvironmentVariable("PGPASSWORD") ?? "secret123";
+// var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE") ?? "devdb";
+// var connString = $"Host={pgHost};Port={pgPort};Username={pgUser};Password={pgPwd};Database={pgDb}";
+var pgHost = Environment.GetEnvironmentVariable("PGHOST");
+var pgPort = Environment.GetEnvironmentVariable("PGPORT");
+var pgUser = Environment.GetEnvironmentVariable("PGUSER");
+var pgPwd  = Environment.GetEnvironmentVariable("PGPASSWORD");
+var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE");
+
+// Optional: throw exception if any variable is missing
+if (string.IsNullOrEmpty(pgHost) ||
+    string.IsNullOrEmpty(pgPort) ||
+    string.IsNullOrEmpty(pgUser) ||
+    string.IsNullOrEmpty(pgPwd) ||
+    string.IsNullOrEmpty(pgDb))
+{
+    throw new Exception("One or more required DB environment variables are not set!");
+}
+
 var connString = $"Host={pgHost};Port={pgPort};Username={pgUser};Password={pgPwd};Database={pgDb}";
+
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(connString));
