@@ -41,13 +41,13 @@ echo "kubectl installed."
 kubectl version --client || true
 
 # -------------------------------
-# 5️⃣ Install Minikube
-# -------------------------------
-echo "Installing Minikube..."
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-chmod +x minikube-linux-amd64
-mv minikube-linux-amd64 /usr/local/bin/minikube
-echo "Minikube installed."
+# # 5️⃣ Install Minikube
+# # -------------------------------
+# echo "Installing Minikube..."
+# curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+# chmod +x minikube-linux-amd64
+# mv minikube-linux-amd64 /usr/local/bin/minikube
+# echo "Minikube installed."
 
 # -------------------------------
 # 6️⃣ Mount extra EBS volume for PV
@@ -75,11 +75,11 @@ fi
 echo "EBS volume mounted at $MOUNT_POINT"
 
 # -------------------------------
-# 7️⃣ Start Minikube
-# -------------------------------
-echo "Starting Minikube..."
-minikube delete || true
-minikube start --cpus=2 --memory=4096 --driver=docker
+# # 7️⃣ Start Minikube
+# # -------------------------------
+# echo "Starting Minikube..."
+# minikube delete || true
+# minikube start --cpus=2 --memory=4096 --driver=docker
 
 # -------------------------------
 # 8️⃣ Done
